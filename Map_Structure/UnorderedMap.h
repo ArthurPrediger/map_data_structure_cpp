@@ -5,13 +5,20 @@
 #include <string>
 #include <array>
 #include <vector>
+#include <memory>
 #include <exception>
 
 template <class Key, class T>
 class UnorderedMap : public Map_ADT<Key, T>
 {
 public:
-	UnorderedMap() = default;
+	UnorderedMap(size_t numBuckets = 20)
+		:
+		bucket_count(numBuckets)
+	{
+		keys = std::make_unique<std::vector<Key>[]>(bucket_count);
+		values = std::make_unique<std::vector<T>[]>(bucket_count);
+	};
 	bool empty() const override
 	{
 		return size_ == 0;
@@ -37,8 +44,9 @@ public:
 	};
 	bool containsValue(const T& value) const override
 	{
-		for (const auto& bucket : values)
+		for (size_t i = 0; i < bucket_count; i++)
 		{
+			auto bucket = values[i];
 			for (const auto& value_in : bucket)
 			{
 				if (value == value_in)
@@ -50,11 +58,11 @@ public:
 
 		return false;
 	};
-	T erase(const Key& key) override
+	std::optional<T> erase(const Key& key) override
 	{
 		if (!containsKey(key))
 		{
-			throw std::runtime_error("Mapa não contém a chave a ser apagada!");
+			throw std::runtime_error("Map does not contain specified erasable key!");
 		}
 		
 		auto hash = std::hash<Key>{}(key);
@@ -73,7 +81,7 @@ public:
 			}
 		}
 
-		return 0;
+		return {};
 	};
 	void insert(const Key& key, const T& value) override
 	{
@@ -127,9 +135,9 @@ public:
 	}
 
 private:
-	static constexpr size_t bucket_count = 20;
+	size_t bucket_count;
 	size_t size_ = 0;
-	std::array<std::vector<Key>, bucket_count> keys;
-	std::array<std::vector<T>, bucket_count> values;
+	std::unique_ptr<std::vector<Key>[]> keys;
+	std::unique_ptr<std::vector<T>[]> values;
 };
 
