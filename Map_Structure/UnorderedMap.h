@@ -59,12 +59,7 @@ public:
 		return false;
 	};
 	std::optional<T> erase(const Key& key) override
-	{
-		if (!containsKey(key))
-		{
-			throw std::runtime_error("Map does not contain specified erasable key!");
-		}
-		
+	{		
 		auto hash = std::hash<Key>{}(key);
 		size_t pos = hash % bucket_count;
 

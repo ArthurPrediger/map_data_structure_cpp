@@ -33,8 +33,21 @@ namespace std
 		size_t operator()(const Foo& foo) const
 		{
 			hash<int> hasher;
-			return hasher(foo.x) + hasher(foo.y);
+			auto hashx = hasher(foo.x);
+			auto hashy = hasher(foo.y);
+			
+			hashx ^= hashy + 0x9e3779b9 + (hashx << 6) + (hashx >> 2);
+			return  hashx;
 		}
+
+		//size_t operator()(const Foo& foo) const
+		//{
+		//	hash<int> hasher;
+		//	auto hashx = hasher(foo.x);
+		//	auto hashy = hasher(foo.y);
+		//
+		//	return  hashx + hashy;
+		//}
 	};
 }
 
@@ -42,14 +55,14 @@ int main()
 {
 	try
 	{
-		UnorderedMap<std::string, Foo> map{};
+		UnorderedMap<std::string, Foo> map{40};
 
 		map.insert("A", { 1, 4 });
 		map.insert("A", { 2, 5 });
 		map.insert("B", { 3, 6 });
 
 		std::cout << map << std::endl;
-		std::cout << map.erase("B").value() << std::endl;
+		std::cout << map.erase("C").has_value() << std::endl;
 		std::cout << map << std::endl;
 		std::cout << std::boolalpha << map.empty() << std::endl;
 		std::cout << map.size() << std::endl;
@@ -62,11 +75,16 @@ int main()
 
 		std::cout << "\n";
 
-		UnorderedMap<Foo, int> map1{};
+		UnorderedMap<Foo, int> map1{30};
 
 		map1.insert({ 1, 4 }, 1);
 		map1.insert({ 2, 5 }, 2);
-		map1.insert({ 3, 6 }, 3);
+		map1.insert({ 3, 7 }, 3);
+
+		//for (int i = 0; i < 1000; i++)
+		//{
+		//	map1.insert({ i, i * 2 }, i);
+		//}
 
 		std::cout << map1 << std::endl;
 		std::cout << map1.erase({ 2, 5 }).value() << std::endl;
@@ -79,15 +97,6 @@ int main()
 		map1.insert({ 2, 5 }, 2);
 		std::cout << std::boolalpha << map1.containsKey({ 2, 5 }) << std::endl;
 		std::cout << std::boolalpha << map1.containsValue(2) << std::endl;
-
-		Foo f1 = { 1, 2 };
-		Foo f2 = { 1, 2 };
-		Foo f3 = { 1, 3 };
-
-		if (f1 == f2)
-		{
-			return true;
-		}
 	}
 	catch (const std::exception& e)
 	{
